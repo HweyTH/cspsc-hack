@@ -6,7 +6,7 @@ export default function App() {
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerText}>My App</Text>
+        <Text style={styles.headerText}>Cyber Genie</Text>
       </View>
 
       {/* Main Content */}
