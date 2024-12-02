@@ -1,40 +1,48 @@
-import React from "react";
-import { Text, View, StyleSheet, SafeAreaView, TouchableOpacity } from "react-native";
+import React, { useState } from "react";
+import { Text, View, StyleSheet, SafeAreaView, TouchableOpacity, Switch } from "react-native";
+import { MaterialIcons, FontAwesome } from "@expo/vector-icons";
 
 export default function App() {
+  const [darkMode, setDarkMode] = useState(false);
+
+  const toggleDarkMode = () => setDarkMode((prevMode) => !prevMode);
+
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, darkMode && styles.darkContainer]}>
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerText}>Cyber Genie</Text>
+        <Switch value={darkMode} onValueChange={toggleDarkMode} />
       </View>
 
       {/* Main Content */}
       <View style={styles.content}>
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Practice Tests</Text>
-          <Text style={styles.cardDescription}>
-            Take a variety of G1 practice tests to prepare for the real thing.
+        <TouchableOpacity style={[styles.card, darkMode && styles.darkCard]}>
+          <FontAwesome name="shield" size={36} color={darkMode ? "#ecf0f1" : "#2980b9"} />
+          <Text style={[styles.cardTitle, darkMode && styles.darkText]}>Practice Tests</Text>
+          <Text style={[styles.cardDescription, darkMode && styles.darkText]}>
+            Take cybersecurity quizzes to boost your knowledge.
           </Text>
-        </View>
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Road Signs</Text>
-          <Text style={styles.cardDescription}>
-            Learn important road signs and their meanings.
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.card, darkMode && styles.darkCard]}>
+          <MaterialIcons name="traffic" size={36} color={darkMode ? "#ecf0f1" : "#e74c3c"} />
+          <Text style={[styles.cardTitle, darkMode && styles.darkText]}>Cyber Threats</Text>
+          <Text style={[styles.cardDescription, darkMode && styles.darkText]}>
+            Learn how to identify and respond to common cyber threats.
           </Text>
-        </View>
+        </TouchableOpacity>
       </View>
 
       {/* Footer */}
-      <View style={styles.footer}>
+      <View style={[styles.footer, darkMode && styles.darkFooter]}>
         <TouchableOpacity style={styles.footerButton}>
-          <Text style={styles.footerButtonText}>Home</Text>
+          <Text style={[styles.footerButtonText, darkMode && styles.darkText]}>Home</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.footerButton}>
-          <Text style={styles.footerButtonText}>Practice</Text>
+          <Text style={[styles.footerButtonText, darkMode && styles.darkText]}>Practice</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.footerButton}>
-          <Text style={styles.footerButtonText}>Settings</Text>
+          <Text style={[styles.footerButtonText, darkMode && styles.darkText]}>Settings</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -46,14 +54,19 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#f8f9fa",
   },
-  header: {
+  darkContainer: {
     backgroundColor: "#2c3e50",
+  },
+  header: {
+    backgroundColor: "#34495e",
     padding: 20,
     alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   headerText: {
     color: "#fff",
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: "bold",
   },
   content: {
@@ -70,31 +83,43 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
+    alignItems: "center",
+  },
+  darkCard: {
+    backgroundColor: "#34495e",
   },
   cardTitle: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: "bold",
     color: "#34495e",
-    marginBottom: 10,
+    marginVertical: 10,
   },
   cardDescription: {
-    fontSize: 14,
+    fontSize: 16,
     color: "#7f8c8d",
+    textAlign: "center",
   },
   footer: {
     flexDirection: "row",
     justifyContent: "space-around",
     backgroundColor: "#ecf0f1",
-    paddingVertical: 10,
+    paddingVertical: 15,
     borderTopWidth: 1,
     borderTopColor: "#ddd",
+  },
+  darkFooter: {
+    backgroundColor: "#2c3e50",
+    borderTopColor: "#2c3e50",
   },
   footerButton: {
     padding: 10,
   },
   footerButtonText: {
     color: "#2980b9",
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "bold",
+  },
+  darkText: {
+    color: "#ecf0f1",
   },
 });
