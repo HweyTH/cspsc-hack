@@ -18,10 +18,10 @@ export default function App() {
       {/* Main Content */}
       <View style={styles.content}>
         <TouchableOpacity style={[styles.card, darkMode && styles.darkCard]}>
-          <FontAwesome name="shield" size={36} color={darkMode ? "#ecf0f1" : "#2980b9"} />
-          <Text style={[styles.cardTitle, darkMode && styles.darkText]}>Practice Tests</Text>
+          <FontAwesome name="lock" size={36} color={darkMode ? "#ecf0f1" : "#2980b9"} />
+          <Text style={[styles.cardTitle, darkMode && styles.darkText]}>Cyber Training</Text>
           <Text style={[styles.cardDescription, darkMode && styles.darkText]}>
-            Take cybersecurity quizzes to boost your knowledge.
+            Learn essential skills to protect yourself online.
           </Text>
         </TouchableOpacity>
         <TouchableOpacity style={[styles.card, darkMode && styles.darkCard]}>
