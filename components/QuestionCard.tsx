@@ -1,52 +1,70 @@
-// components/QuestionCard.tsx
-import React from 'react';
-import { View, Text, Button, StyleSheet, Animated, TouchableOpacity } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, Button, StyleSheet, Animated, Easing } from 'react-native';
 
 interface QuestionCardProps {
   question: { question: string; options: string[]; answer: string };
+  onAnswer: (isCorrect: boolean) => void;  // Callback to notify parent of the answer correctness
 }
 
-export default function QuestionCard({ question }: QuestionCardProps) {
-  const [selectedAnswer, setSelectedAnswer] = React.useState<string | null>(null);
-  const [answerOpacity] = React.useState(new Animated.Value(0));
-  const [optionsOpacity] = React.useState(new Animated.Value(1));
+export default function QuestionCard({ question, onAnswer }: QuestionCardProps) {
+  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+  const [animation] = useState(new Animated.Value(0)); // Animation value for answer feedback
 
-  const handleAnswerSelect = (option: string) => {
+  const handleAnswer = (option: string) => {
     setSelectedAnswer(option);
 
-    // Fade out options and show result
-    Animated.timing(optionsOpacity, {
-      toValue: 0,
-      duration: 300,
-      useNativeDriver: true,
-    }).start();
+    // Check if the answer is correct
+    const isCorrect = option === question.answer;
+    onAnswer(isCorrect); // Notify parent with the correctness of the answer
 
-    // Fade in answer feedback
-    Animated.timing(answerOpacity, {
+    // Trigger animation on selecting an answer
+    Animated.timing(animation, {
       toValue: 1,
       duration: 500,
-      delay: 300,
+      easing: Easing.ease,
       useNativeDriver: true,
     }).start();
   };
 
+  const feedbackColor = selectedAnswer
+    ? selectedAnswer === question.answer
+      ? 'green'
+      : 'red'
+    : 'transparent';
+
+  const opacityStyle = animation.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 1],
+  });
+
   return (
     <View style={styles.card}>
       <Text style={styles.question}>{question.question}</Text>
-
-      {/* Options with smooth transition */}
-      {question.options.map((option, index) => (
-        <TouchableOpacity key={index} onPress={() => handleAnswerSelect(option)}>
-          <Animated.View style={[styles.optionContainer, { opacity: optionsOpacity }]}>
-            <Text style={styles.option}>{option}</Text>
-          </Animated.View>
-        </TouchableOpacity>
-      ))}
-
-      {/* Answer feedback */}
+      {question.options.map((option, index) => {
+        const isSelected = option === selectedAnswer;
+        const isCorrect = option === question.answer;
+        return (
+          <View key={index} style={styles.optionContainer}>
+            <Button
+              title={option}
+              onPress={() => handleAnswer(option)}
+              color={selectedAnswer ? 'gray' : '#007bff'} // Disable options after answering
+            />
+            {/* Show crossed-out style for incorrect answers */}
+            {isSelected && !isCorrect && (
+              <Text style={styles.incorrectAnswer}>✘</Text>
+            )}
+            {isSelected && isCorrect && (
+              <Text style={styles.correctAnswer}>✔</Text>
+            )}
+          </View>
+        );
+      })}
       {selectedAnswer && (
-        <Animated.View style={[styles.answerContainer, { opacity: answerOpacity }]}>
-          <Text style={selectedAnswer === question.answer ? styles.correct : styles.incorrect}>
+        <Animated.View style={[styles.answerContainer, { opacity: opacityStyle }]}>
+          <Text
+            style={[styles.answer, { color: feedbackColor }]}
+          >
             {selectedAnswer === question.answer ? "Correct!" : "Incorrect!"}
           </Text>
         </Animated.View>
@@ -60,48 +78,41 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     padding: 20,
     backgroundColor: '#fff',
-    borderRadius: 10,
-    shadowColor: 'black',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 5,
-    transform: [{ scale: 0.98 }],
-  },
-  question: {
-    fontSize: 22,
-    fontWeight: '600',
-    marginBottom: 20,
-    color: '#333',
-  },
-  optionContainer: {
-    marginBottom: 12,
-    padding: 12,
-    backgroundColor: '#f4f4f4',
     borderRadius: 8,
     shadowColor: 'black',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5, // For Android shadow
   },
-  option: {
-    fontSize: 18,
-    color: '#333',
+  question: {
+    fontSize: 22, // Slightly larger for readability
+    fontWeight: 'bold',
+    marginBottom: 15,
+  },
+  optionContainer: {
+    marginVertical: 5,
+  },
+  incorrectAnswer: {
+    position: 'absolute',
+    top: 10,
+    left: 0,
+    fontSize: 24,
+    color: 'red',
+  },
+  correctAnswer: {
+    position: 'absolute',
+    top: 10,
+    left: 0,
+    fontSize: 24,
+    color: 'green',
   },
   answerContainer: {
-    marginTop: 20,
+    marginTop: 10,
+    alignItems: 'center',
   },
-  correct: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#4CAF50', // Green for correct
-    textAlign: 'center',
-  },
-  incorrect: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#F44336', // Red for incorrect
-    textAlign: 'center',
+  answer: {
+    fontSize: 18,
+    fontWeight: 'bold',
   },
 });
