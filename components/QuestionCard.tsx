@@ -2,22 +2,20 @@ import React, { useState } from 'react';
 import { View, Text, Button, StyleSheet, Animated, Easing } from 'react-native';
 
 interface QuestionCardProps {
-  question: { question: string; options: string[]; answer: string };
-  onAnswer: (isCorrect: boolean) => void;  // Callback to notify parent of the answer correctness
+  question: { question: string; options: string[]; correctAnswer: string };
+  onAnswer: (isCorrect: boolean, answer: string) => void;
+  selectedAnswer: string | null;
 }
 
-export default function QuestionCard({ question, onAnswer }: QuestionCardProps) {
-  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
-  const [animation] = useState(new Animated.Value(0)); // Animation value for answer feedback
+export default function QuestionCard({ question, onAnswer, selectedAnswer }: QuestionCardProps) {
+  const [animation] = useState(new Animated.Value(0));
 
   const handleAnswer = (option: string) => {
-    setSelectedAnswer(option);
+    if (selectedAnswer) return; // Prevent changing the answer once selected
 
-    // Check if the answer is correct
-    const isCorrect = option === question.answer;
-    onAnswer(isCorrect); // Notify parent with the correctness of the answer
+    const isCorrect = option === question.correctAnswer;
+    onAnswer(isCorrect, option);
 
-    // Trigger animation on selecting an answer
     Animated.timing(animation, {
       toValue: 1,
       duration: 500,
@@ -27,7 +25,7 @@ export default function QuestionCard({ question, onAnswer }: QuestionCardProps) 
   };
 
   const feedbackColor = selectedAnswer
-    ? selectedAnswer === question.answer
+    ? selectedAnswer === question.correctAnswer
       ? 'green'
       : 'red'
     : 'transparent';
@@ -42,15 +40,15 @@ export default function QuestionCard({ question, onAnswer }: QuestionCardProps) 
       <Text style={styles.question}>{question.question}</Text>
       {question.options.map((option, index) => {
         const isSelected = option === selectedAnswer;
-        const isCorrect = option === question.answer;
+        const isCorrect = option === question.correctAnswer;
         return (
           <View key={index} style={styles.optionContainer}>
             <Button
               title={option}
               onPress={() => handleAnswer(option)}
-              color={selectedAnswer ? 'gray' : '#007bff'} // Disable options after answering
+              color={selectedAnswer ? 'gray' : '#007bff'}
+              disabled={selectedAnswer !== null}  // Disable options after answering
             />
-            {/* Show crossed-out style for incorrect answers */}
             {isSelected && !isCorrect && (
               <Text style={styles.incorrectAnswer}>✘</Text>
             )}
@@ -62,11 +60,14 @@ export default function QuestionCard({ question, onAnswer }: QuestionCardProps) 
       })}
       {selectedAnswer && (
         <Animated.View style={[styles.answerContainer, { opacity: opacityStyle }]}>
-          <Text
-            style={[styles.answer, { color: feedbackColor }]}
-          >
-            {selectedAnswer === question.answer ? "Correct!" : "Incorrect!"}
+          <Text style={[styles.answer, { color: feedbackColor }]}>
+            {selectedAnswer === question.correctAnswer ? "Correct!" : "Incorrect!"}
           </Text>
+          {selectedAnswer !== question.correctAnswer && (
+            <Text style={styles.correctAnswerText}>
+              The correct answer is: {question.correctAnswer}
+            </Text>
+          )}
         </Animated.View>
       )}
     </View>
@@ -83,10 +84,10 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
-    elevation: 5, // For Android shadow
+    elevation: 5,
   },
   question: {
-    fontSize: 22, // Slightly larger for readability
+    fontSize: 22,
     fontWeight: 'bold',
     marginBottom: 15,
   },
@@ -114,5 +115,11 @@ const styles = StyleSheet.create({
   answer: {
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  correctAnswerText: {
+    marginTop: 5,
+    fontSize: 16,
+    fontStyle: 'italic',
+    color: 'green',
   },
 });

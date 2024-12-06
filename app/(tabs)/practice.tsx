@@ -1,32 +1,49 @@
-import React, { useState, useEffect } from 'react';
-import { ScrollView, View, Text, Button, StyleSheet, Alert } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import React, { useState } from 'react';
+import { ScrollView, View, Text, Button, StyleSheet } from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { questions } from '../../constants/database';
 import QuestionCard from '../../components/QuestionCard';
-import * as Progress from 'react-native-progress';  
+import * as Progress from 'react-native-progress';
 
 export default function Practice() {
   const { difficulty } = useLocalSearchParams();
+  const router = useRouter();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [correctAnswers, setCorrectAnswers] = useState(0);
   const [answeredQuestions, setAnsweredQuestions] = useState<number[]>([]);
+  const [isFinished, setIsFinished] = useState(false);
+  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
 
   const difficultyLevel = typeof difficulty === 'string' ? difficulty.toLowerCase() : (difficulty?.[0]?.toLowerCase() || '');
-  const currentQuestions = questions[difficultyLevel as keyof typeof questions] || [];
+  const currentQuestions = (questions[difficultyLevel as keyof typeof questions] || []).map(
+    ({ question, options, answer }) => ({
+      question,
+      options,
+      correctAnswer: answer, // Map "answer" to "correctAnswer"
+    })
+  );
   const currentQuestion = currentQuestions[currentQuestionIndex];
 
-  const handleNextQuestion = (isCorrect: boolean) => {
+  const handleAnswer = (isCorrect: boolean, selectedAnswer: string) => {
     if (answeredQuestions.includes(currentQuestionIndex)) {
-      return; // Prevent answering the same question multiple times
+      return;
     }
+
+    setSelectedAnswer(selectedAnswer);
 
     if (isCorrect) {
       setCorrectAnswers(correctAnswers + 1);
     }
-    setAnsweredQuestions([...answeredQuestions, currentQuestionIndex]);
 
+    setAnsweredQuestions([...answeredQuestions, currentQuestionIndex]);
+  };
+
+  const handleNextQuestion = () => {
     if (currentQuestionIndex < currentQuestions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
+      setSelectedAnswer(null); // Reset the selected answer for the next question
+    } else {
+      setIsFinished(true);
     }
   };
 
@@ -52,11 +69,14 @@ export default function Practice() {
         <Text style={styles.resultMessage}>
           {isPass ? 'You Passed!' : 'You Failed. Try Again!'}
         </Text>
+        <Button
+          title="Go to Homepage"
+          onPress={() => router.push('/')}
+        />
       </View>
     );
   };
 
-  // Handle invalid or missing difficulty
   if (!difficulty || !['easy', 'medium', 'hard'].includes(difficultyLevel || '')) {
     return (
       <ScrollView style={styles.container}>
@@ -69,20 +89,25 @@ export default function Practice() {
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.header}>Practice Test</Text>
-      {currentQuestions.length > 0 ? (
+      {!isFinished ? (
         <>
           <Text style={styles.questionNumber}>
             Question {currentQuestionIndex + 1} of {currentQuestions.length}
           </Text>
           <QuestionCard
             question={currentQuestion}
-            onAnswer={(isCorrect) => handleNextQuestion(isCorrect)}
+            onAnswer={(isCorrect, answer) => handleAnswer(isCorrect, answer)}
+            selectedAnswer={selectedAnswer}
           />
           <Text style={styles.correctAnswers}>
             Correct Answers: {correctAnswers} / {currentQuestions.length}
           </Text>
           <View style={styles.buttonContainer}>
-            <Button title="Next Question" onPress={() => handleNextQuestion(false)} />
+            <Button
+              title="Next Question"
+              onPress={handleNextQuestion}
+              disabled={!answeredQuestions.includes(currentQuestionIndex)} // Enable after answering
+            />
           </View>
         </>
       ) : (
@@ -148,12 +173,6 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: 18,
     color: 'red',
-    textAlign: 'center',
-  },
-  titleText: {
-    fontSize: 30,
-    fontWeight: 'bold',
-    marginBottom: 15,
     textAlign: 'center',
   },
 });
