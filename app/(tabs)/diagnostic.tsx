@@ -105,7 +105,7 @@ export default function Diagnostic() {
 
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.header}>Practice Test</Text>
+      <Text style={styles.header}>Let's see how good you are right now!</Text>
       {!isFinished ? (
         <>
           <Text style={styles.questionNumber}>
